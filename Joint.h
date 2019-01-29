@@ -28,7 +28,7 @@ class Joint
     
     // Optional extra transform, not propagated to children, for scaling etc.
     // Relative to 'transform'.
-    glm::mat4 extraTransform = glm::mat4(1.f);
+    glm::mat4 scaleTransform = glm::mat4(1.f);
     
     vector<Joint*> children;
     Obj3D *obj;
@@ -36,7 +36,6 @@ class Joint
 public:
     Joint(Obj3D *obj, Joint *parent);
     
-    bool visible = true;
     string name = "unknown";
     vec3 rotate_axis = vec3(1., 0., 0.); // Used for rotate(float)
 	
@@ -51,6 +50,4 @@ public:
     void rotate(float degrees); // rotate() is prepended, so it happends before all other transforms
     void rotate(float degrees, vec3 axis);
     void translate(vec3 trans); // Append translation
-    void translate(vec3 baseTrans, float parentLen, vec3 parentScale); // Move to the end of the parent
-
 };

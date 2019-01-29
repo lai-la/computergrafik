@@ -4,17 +4,12 @@
 #include <vector>
 #include <iostream>
 
-// Include GLEW
+
 #include <GL/glew.h>
-
-// Include GLFW
 #include <GLFW/glfw3.h>
-
-// Include GLM
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -23,28 +18,24 @@ using namespace std;
 
 #include "shader.hpp"
 #include "Joint.h"
-
-// Wuerfel und Kugel
 #include "objects.hpp"
 #include"Obj3D.h"
-
 #include "objloader.hpp"
-
 #include "texture.hpp"
 
 float angleX = 0.0f;
 float angleY = 0.0f;
 float angleZ = 0.0f;
+
 //variables to implement camera movement
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -2.0f);
+glm::vec3 cameraPos = glm::vec3(5.0f, 0.0f, 0.0f);
+glm::vec3 cameraFront = glm::vec3(-2.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 #define KEY_MOVE_STEP 5.0f
 #define JOINT_ROTATE_STEP 5.0f
 
-#define WORLD_LIGHT_COORDINATES -2.5, 2.5, 2.//-1., 3., 1.
-#define CAMERA_COORDINATES -2.7, 1., 3.8
+//#define CAMERA_COORDINATES -2.7, 1., 3.8
 
 #define TEXTURE_FILE "wood_texture.bmp"
 #define GRASS_TEXTURE_FILE "grass_texture.bmp"
@@ -56,13 +47,7 @@ void error_callback(int error, const char* description)
 	fputs(description, stderr);
 }
 
-/*
-void cursor_position_callback(GLFWwindow* window, double xPos, double yPos) ;
 
-void cursor_enter_callback(GLFWwindow* window, int entered);
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-*/
 vector<Joint*> all_joints;
 int selected_joint = 0;
 
@@ -132,14 +117,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cameraPos -= cameraSpeed * cameraFront;
 		break;
 	
-	/*
-	case GLFW_KEY_A:
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-		break;
-	case GLFW_KEY_D:
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-		break;
-	*/
+
 	default:
 		break;
 	}
@@ -165,6 +143,7 @@ void sendMVP()
 	glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
 }
 
+//sets global model to variable, sends MVP,and then sets Model back to what it was
 void sendModel(glm::mat4 model) {
 	glm::mat4 Save = Model;
 	Model = model;
@@ -244,7 +223,7 @@ Joint *makeHorseSkeleton() {
 	Joint *head = new Joint(new Obj3D("horse_head2.obj"), neck);
 	head->scale(SCALE);
 	head->rotate(0.42f * PI, vec3(1., 0., 0.));
-	head->translate(vec3(-0.05, -0.02, 0.18), 3.5f, SCALE);
+	head->translate(vec3(-0.05, -0.02, 3.68*0.19));
 	head->name = "head";
 	head->counter = 0;
 	head->max = 11;
@@ -265,24 +244,10 @@ Joint *makeHorseSkeleton() {
 	return body;
 }
 
-void paintCoordinateSystem() { 
-	glm::mat4 csSave = Model;
-	Model = glm::scale(mat4(1.f), glm::vec3(5, 0.01, 0.01));
-	sendMVP();
-	drawCube();
-	Model = glm::scale(mat4(1.f), glm::vec3(0.01, 5.0, 0.01));
-	sendMVP();
-	drawCube();
-	Model = glm::scale(mat4(1.f), glm::vec3(0.01, 0.01, 5.0));
-	sendMVP();
-	drawCube();
-	Model = csSave;
-}
-
 
 void drawGround(Obj3D* groundObj) {
 	glm::mat4 groundSave = Model;
-	Model = glm::scale(Model, glm::vec3(10000.0, 0.01, 10000.0));
+	Model = glm::scale(Model, glm::vec3(10.0, 0.01, 10.0));
 	Model = glm::translate(Model, vec3(0., -150., 0.));
 	sendMVP();
 	groundObj->display();
@@ -309,22 +274,6 @@ int main(void)
 										  NULL,  // windowed mode
 										  NULL); // shared window
 
-	/*
-	// Mouse
-	//sets Cursor Pos Callback, method cursor_position_callback displays mouse position coordinates on screen
-	glfwSetCursorPosCallback(window, cursor_position_callback);
-	//Makes sure mous cursor is visible in window
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-	//detecs when cursor exits and enters window
-	glfwSetCursorEnterCallback(window, cursor_enter_callback);
-
-	//detects when action on mouse button e.. left button pressed and released
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	//ensure pressed button gets detected by next poll
-	glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, 1);
-	*/
 
 	if (!window)
 	{
@@ -356,14 +305,10 @@ int main(void)
 		
 	// Create and compile our GLSL program from the shaders
 	//programID = LoadShaders("TransformVertexShader.vertexshader", "ColorFragmentShader.fragmentshader");
-///Achtung die folgende Zeile ersetzt eine andere ######
+
 	programID = LoadShaders("StandardShading.vertexshader", "StandardShading.fragmentshader");
 
 	glUseProgram(programID);
-
-
-	//double xPos = 0;
-	//double yPos = 0;
 
 	
 	// Build skeleton
@@ -372,7 +317,6 @@ int main(void)
 	set_selected_joint(0);
 	GLuint WoodTexture = loadBMP_custom(TEXTURE_FILE);
 	GLuint GrassTexture = loadBMP_custom(GRASS_TEXTURE_FILE);
-	cout << "Texture ids: " << WoodTexture << ", " << GrassTexture << endl;
 
 	Obj3D* groundObj = new Obj3D("cube2.obj");
 
@@ -382,15 +326,9 @@ int main(void)
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // |Z-Buffer muss gelöscht werden	
 
-
-		//glfwGetCursorPos(window, &xPos, &yPos);
-
 		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 		
-		//Camera Projection
-		//Projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-		// Camera matrix
 		/*
 		View = glm::lookAt(glm::vec3(CAMERA_COORDINATES), // Camera in World Space
 						   glm::vec3(0,0,0),  // Camera look-at target
@@ -399,8 +337,6 @@ int main(void)
 		View = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		Model = mat4(1.f);
-		//paintCoordinateSystem();
-		
 
 		Model = glm::rotate(Model, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 		Model = glm::rotate(Model, angleY, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -422,7 +358,7 @@ int main(void)
 		// Draw the skeleton at the origin
 		horse->displayRecursive(Model, &sendModel);
 				
-		glUniform3f(glGetUniformLocation(programID, "LightPosition_worldspace"), WORLD_LIGHT_COORDINATES);
+		glUniform3f(glGetUniformLocation(programID, "LightPosition_worldspace"), 3.5, 2.5, 0.);
 		
 		// Swap buffers
 		glfwSwapBuffers(window);
@@ -438,81 +374,4 @@ int main(void)
 	glfwTerminate();
 	return 0;
 }
-
-/*
-void cursor_position_callback(GLFWwindow* window, double xPos, double yPos)
-{
-	std::cout << xPos << " : " << yPos << std::endl;
-}
-
-void cursor_enter_callback(GLFWwindow* window, int entered)
-{
-	if (entered)
-	{
-		std::cout << "Entered Window" << std::endl;
-	}
-	else
-	{
-		std::cout << "Left Window" << std::endl;
-	}
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-	{
-		std::cout << "Left button pressed" << std::endl;
-	}
-
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-	{
-		std::cout << "Left button released" << std::endl;
-	}
-}
-*/
-/*void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	//avoid big jump when mouse first enters the screen
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-
-	//calculate the offset movement between the last and current frame:
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-	lastX = xpos;
-	lastY = ypos;
-
-	float sensitivity = 0.05f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	//add the offset values to globally declared pitch and yaw values: 
-	yaw += xoffset;
-	pitch += yoffset;
-	// some constraints to avoid weird camera movement
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-	// calculate the actual direction vector from the resulting yaw and pitch value
-	glm::vec3 front;
-	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-	front.y = sin(glm::radians(pitch));
-	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-	cameraFront = glm::normalize(front);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	if (fov >= 1.0f && fov <= 45.0f)
-		fov -= yoffset;
-	if (fov <= 1.0f)
-		fov = 1.0f;
-	if (fov >= 45.0f)
-		fov = 45.0f;
-}
-*/
 
