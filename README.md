@@ -16,7 +16,8 @@ in void key_callback back.
      * W: zoom in
      * S: zoom out
   
-3. **Select the joints:**
+3. **Select the joints:** 
+     (the selected joints will be printed on the debugging console)
      * UP
      * DOWN
   
