@@ -155,35 +155,24 @@ void sendModel(glm::mat4 model) {
 #define IDENT mat4(1.f)
 
 
-void makeLeg(Obj3D *obj1, Obj3D *obj2, Obj3D *obj3, Joint *body, string name, vec3 legTranslate1, vec3 legTranslate2, vec3 legTranslate3) {
+void makeLeg(Obj3D *obj1, Obj3D *obj2, Obj3D *obj3, Joint *body, string name, vec3 legTranslate1, vec3 legTranslate2, 
+	vec3 legTranslate3, int minUpper, int maxUpper, int minLower, int maxLower) {
 	Joint *upper = new Joint(obj1, body);
 	auto upperLegScale = vec3(0.19, 0.19, 0.19);
 	upper->translate(legTranslate1);
 	upper->scale(upperLegScale);
 	upper->rotate(0.5f * PI, vec3(1., 0., 0.));
 	upper->name = name;
-	if (name == "front left leg" || name == "front right leg") {
-		upper->min = -5;
-		upper->max = 10;
-	}
-	else {
-		upper->min = -15;
-		upper->max = 8;
-	}
+	upper->min = minUpper;
+	upper->max = maxUpper;
 	
 	Joint *lower = new Joint(obj2, upper);
 	auto lowerLegScale = vec3(0.19, 0.19, 0.19);
 	lower->scale(lowerLegScale);
 	lower->translate(legTranslate2);
 	lower->name = "lower " + name;
-	if (name == "front left leg" || name == "front right leg") {
-		lower->min = -2;
-		lower->max = 15;
-	}
-	else {
-		lower->min = -20;
-		lower->max = 3;
-	}
+	lower->min = minLower;
+	lower->max = maxLower;
 
 	Joint *hoof = new Joint(obj3, lower);
 	auto hoofScale = vec3(0.19, 0.19, 0.19);
@@ -205,10 +194,14 @@ Joint *makeHorseSkeleton() {
 	body->scale(SCALE);
 	body->name = "body";
 	
-	makeLeg(new Obj3D("horse_front_upper_leg.obj"), new Obj3D("horse_front_lower_leg.obj"), new Obj3D("horse_front_hoof.obj"), body, "front left leg", vec3(0.15, -0.2, 0.6), vec3(0., 0., 0.65), vec3(0., 0., 0.35));
-	makeLeg(new Obj3D("horse_front_upper_leg.obj"), new Obj3D("horse_front_lower_leg.obj"), new Obj3D("horse_front_hoof.obj"), body, "front right leg", vec3(-0.15, -0.2, 0.6), vec3(0., 0., 0.65), vec3(0., 0., 0.35));
-	makeLeg(new Obj3D("horse_rear_upper2_leg.obj"), new Obj3D("horse_rear_lower2_leg.obj"), new Obj3D("horse_rear_hoof2.obj"), body, "rear left leg", vec3(0.1, -0.2, -0.64), vec3(0., -0.27, 0.5), vec3(0., -0.05, 0.46));
-	makeLeg(new Obj3D("horse_rear_upper2_leg.obj"), new Obj3D("horse_rear_lower2_leg.obj"), new Obj3D("horse_rear_hoof2.obj"), body, "rear right leg", vec3(-0.1, -0.2, -0.64), vec3(0., -0.27, 0.5), vec3(0., -0.05, 0.46));
+	makeLeg(new Obj3D("horse_front_upper_leg.obj"), new Obj3D("horse_front_lower_leg.obj"), new Obj3D("horse_front_hoof.obj"), 
+		body, "front left leg", vec3(0.15, -0.2, 0.6), vec3(0., 0., 0.65), vec3(0., 0., 0.35), -5, 10, -2, 15);
+	makeLeg(new Obj3D("horse_front_upper_leg.obj"), new Obj3D("horse_front_lower_leg.obj"), new Obj3D("horse_front_hoof.obj"), 
+		body, "front right leg", vec3(-0.15, -0.2, 0.6), vec3(0., 0., 0.65), vec3(0., 0., 0.35), -5, 10, -2, 15);
+	makeLeg(new Obj3D("horse_rear_upper_leg.obj"), new Obj3D("horse_rear_lower_leg.obj"), new Obj3D("horse_rear_hoof.obj"), 
+		body, "rear left leg", vec3(0.1, -0.2, -0.64), vec3(0., -0.27, 0.5), vec3(0., -0.05, 0.46), -15, 8, -20, 3);
+	makeLeg(new Obj3D("horse_rear_upper_leg.obj"), new Obj3D("horse_rear_lower_leg.obj"), new Obj3D("horse_rear_hoof.obj"), 
+		body, "rear right leg", vec3(-0.1, -0.2, -0.64), vec3(0., -0.27, 0.5), vec3(0., -0.05, 0.46), -15, 8, -20, 3);
 
 	
 	Joint *neck = new Joint(new Obj3D("horse_neck.obj"), body);
@@ -220,10 +213,10 @@ Joint *makeHorseSkeleton() {
 	neck->max = 21;
 	neck->min = -3;
 	
-	Joint *head = new Joint(new Obj3D("horse_head2.obj"), neck);
+	Joint *head = new Joint(new Obj3D("horse_head.obj"), neck);
 	head->scale(SCALE);
 	head->rotate(0.42f * PI, vec3(1., 0., 0.));
-	head->translate(vec3(-0.05, -0.02, 3.68*0.19));
+	head->translate(vec3(-0.05, 0.0, 4.3*0.19));
 	head->name = "head";
 	head->counter = 0;
 	head->max = 11;
@@ -318,7 +311,7 @@ int main(void)
 	GLuint WoodTexture = loadBMP_custom(TEXTURE_FILE);
 	GLuint GrassTexture = loadBMP_custom(GRASS_TEXTURE_FILE);
 
-	Obj3D* groundObj = new Obj3D("cube2.obj");
+	Obj3D* groundObj = new Obj3D("cube.obj");
 
 	// Eventloop
 	while (!glfwWindowShouldClose(window))
@@ -329,12 +322,7 @@ int main(void)
 		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 		
-		/*
-		View = glm::lookAt(glm::vec3(CAMERA_COORDINATES), // Camera in World Space
-						   glm::vec3(0,0,0),  // Camera look-at target
-						   glm::vec3(0,1,0)); // World upwards direction (Y goes upwards)
-		*/
-		View = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			View = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		Model = mat4(1.f);
 
